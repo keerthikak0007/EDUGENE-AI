@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        EduGenie - AI Learning Assistant
+    </title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- Header -->
+
+    <header class="header">
+
+        <div class="logo">
+            EduGenie
+        </div>
+
+        <p class="tagline">
+            Google Gemini Powered Learning Assistant
+        </p>
+
+    </header>
+
+
+    <!-- Introduction -->
+
+    <section class="hero">
+
+        <h1>
+            Learn Smarter with EduGenie
+        </h1>
+
+        <p>
+            Ask questions, understand difficult concepts,
+            generate quizzes, summarize study material,
+            and create personalized learning paths.
+        </p>
+
+    </section>
+
+
+    <!-- Q&A -->
+
+    <section class="card">
+
+        <h2>
+            💬 Ask EduGenie
+        </h2>
+
+        <p class="description">
+            Ask any educational question.
+        </p>
+
+        <form id="qaForm">
+
+            <input
+                type="text"
+                id="question"
+                placeholder="Example: Which is the largest ocean?"
+                required
+            >
+
+            <button type="submit">
+                Ask Question
+            </button>
+
+        </form>
+
+        <div
+            id="qaLoading"
+            class="loading hidden"
+        >
+            Thinking...
+        </div>
+
+        <div
+            id="qaResult"
+            class="result hidden"
+        ></div>
+
+    </section>
+
+
+    <!-- Explanation -->
+
+    <section class="card">
+
+        <h2>
+            📚 Explain a Concept
+        </h2>
+
+        <p class="description">
+            Get a simple explanation of a difficult topic.
+        </p>
+
+        <form id="explainForm">
+
+            <input
+                type="text"
+                id="topic"
+                placeholder="Example: Binary Search Algorithm"
+                required
+            >
+
+            <button type="submit">
+                Explain
+            </button>
+
+        </form>
+
+        <div
+            id="explainLoading"
+            class="loading hidden"
+        >
+            Preparing explanation...
+        </div>
+
+        <div
+            id="explainResult"
+            class="result hidden"
+        ></div>
+
+    </section>
+
+
+    <!-- Summarization -->
+
+    <section class="card">
+
+        <h2>
+            📝 Summarize Study Material
+        </h2>
+
+        <p class="description">
+            Paste your educational text below.
+        </p>
+
+        <form id="summaryForm">
+
+            <textarea
+                id="summaryText"
+                placeholder="Paste your study material here..."
+                required
+            ></textarea>
+
+            <button type="submit">
+                Summarize
+            </button>
+
+        </form>
+
+        <div
+            id="summaryLoading"
+            class="loading hidden"
+        >
+            Summarizing...
+        </div>
+
+        <div
+            id="summaryResult"
+            class="result hidden"
+        ></div>
+
+    </section>
+
+
+    <!-- Quiz -->
+
+    <section class="card">
+
+        <h2>
+            🧠 Generate Quiz
+        </h2>
+
+        <p class="description">
+            Generate 3 multiple-choice questions
+            from your study material.
+        </p>
+
+        <form id="quizForm">
+
+            <textarea
+                id="quizText"
+                placeholder="Example: Pythagoras theorem states that in a right-angled triangle, the square of the hypotenuse is equal to the sum of the squares of the other two sides."
+                required
+            ></textarea>
+
+            <button type="submit">
+                Generate Quiz
+            </button>
+
+        </form>
+
+        <div
+            id="quizLoading"
+            class="loading hidden"
+        >
+            Creating quiz...
+        </div>
+
+        <div
+            id="quizResult"
+            class="quiz-result hidden"
+        ></div>
+
+    </section>
+
+
+    <!-- Learning Path -->
+
+    <section class="card">
+
+        <h2>
+            🛤️ Learning Path
+        </h2>
+
+        <p class="description">
+            Get a structured learning plan for any subject.
+        </p>
+
+        <form id="learningForm">
+
+            <input
+                type="text"
+                id="learningTopic"
+                placeholder="Example: SQL"
+                required
+            >
+
+            <button type="submit">
+                Create Learning Path
+            </button>
+
+        </form>
+
+        <div
+            id="learningLoading"
+            class="loading hidden"
+        >
+            Creating your learning path...
+        </div>
+
+        <div
+            id="learningResult"
+            class="result hidden"
+        ></div>
+
+    </section>
+
+
+    <!-- Footer -->
+
+    <footer>
+
+        <p>
+            EduGenie © 2026
+        </p>
+
+        <p>
+            Powered by FastAPI + Google Gemini
+        </p>
+
+    </footer>
+
+</div>
+
+
+<script>
+
+/* =====================================
+   Utility Functions
+===================================== */
+
+function show(element) {
+
+    element.classList.remove("hidden");
+
+}
+
+
+function hide(element) {
+
+    element.classList.add("hidden");
+
+}
+
+
+function escapeHTML(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+function showError(element, message) {
+
+    element.innerHTML = `
+        <div class="error">
+            ${escapeHTML(message)}
+        </div>
+    `;
+
+    show(element);
+
+}
+
+
+function showTextResult(element, text) {
+
+    element.innerHTML = `
+        <div class="result-content">
+            ${escapeHTML(text)
+                .replaceAll("\n", "<br>")}
+        </div>
+    `;
+
+    show(element);
+
+}
+
+
+/* =====================================
+   Q&A
+===================================== */
+
+document
+    .getElementById("qaForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+            const question =
+                document
+                    .getElementById("question")
+                    .value
+                    .trim();
+
+            const loading =
+                document
+                    .getElementById("qaLoading");
+
+            const result =
+                document
+                    .getElementById("qaResult");
+
+
+            if (!question) {
+
+                showError(
+                    result,
+                    "Please enter a question."
+                );
+
+                return;
+
+            }
+
+
+            show(loading);
+            hide(result);
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/qa?question=${encodeURIComponent(question)}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Unable to get an answer."
+                    );
+
+                }
+
+
+                showTextResult(
+                    result,
+                    data.answer
+                );
+
+
+            } catch(error) {
+
+                showError(
+                    result,
+                    error.message
+                );
+
+            } finally {
+
+                hide(loading);
+
+            }
+
+        }
+    );
+
+
+/* =====================================
+   Explanation
+===================================== */
+
+document
+    .getElementById("explainForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const topic =
+                document
+                    .getElementById("topic")
+                    .value
+                    .trim();
+
+
+            const loading =
+                document
+                    .getElementById("explainLoading");
+
+
+            const result =
+                document
+                    .getElementById("explainResult");
+
+
+            if (!topic) {
+
+                showError(
+                    result,
+                    "Please enter a topic."
+                );
+
+                return;
+
+            }
+
+
+            show(loading);
+            hide(result);
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/explain",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                topic: topic
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Unable to explain the topic."
+                    );
+
+                }
+
+
+                showTextResult(
+                    result,
+                    data.explanation
+                );
+
+
+            } catch(error) {
+
+                showError(
+                    result,
+                    error.message
+                );
+
+            } finally {
+
+                hide(loading);
+
+            }
+
+        }
+    );
+
+
+/* =====================================
+   Summary
+===================================== */
+
+document
+    .getElementById("summaryForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const text =
+                document
+                    .getElementById("summaryText")
+                    .value
+                    .trim();
+
+
+            const loading =
+                document
+                    .getElementById("summaryLoading");
+
+
+            const result =
+                document
+                    .getElementById("summaryResult");
+
+
+            if (!text) {
+
+                showError(
+                    result,
+                    "Please enter text to summarize."
+                );
+
+                return;
+
+            }
+
+
+            show(loading);
+            hide(result);
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/summarize",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                text: text
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Unable to summarize text."
+                    );
+
+                }
+
+
+                showTextResult(
+                    result,
+                    data.summary
+                );
+
+
+            } catch(error) {
+
+                showError(
+                    result,
+                    error.message
+                );
+
+            } finally {
+
+                hide(loading);
+
+            }
+
+        }
+    );
+
+
+/* =====================================
+   Quiz
+===================================== */
+
+document
+    .getElementById("quizForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const text =
+                document
+                    .getElementById("quizText")
+                    .value
+                    .trim();
+
+
+            const loading =
+                document
+                    .getElementById("quizLoading");
+
+
+            const result =
+                document
+                    .getElementById("quizResult");
+
+
+            if (!text) {
+
+                showError(
+                    result,
+                    "Please enter study material."
+                );
+
+                return;
+
+            }
+
+
+            show(loading);
+            hide(result);
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/quiz",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body: JSON.stringify({
+                                text: text
+                            })
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Unable to generate quiz."
+                    );
+
+                }
+
+
+                renderQuiz(
+                    result,
+                    data.quiz
+                );
+
+
+            } catch(error) {
+
+                showError(
+                    result,
+                    error.message
+                );
+
+            } finally {
+
+                hide(loading);
+
+            }
+
+        }
+    );
+
+
+/* =====================================
+   Render Quiz
+===================================== */
+
+function renderQuiz(
+    container,
+    quiz
+) {
+
+    container.innerHTML = "";
+
+
+    quiz.forEach(
+        function(item, questionIndex) {
+
+            const questionBox =
+                document.createElement(
+                    "div"
+                );
+
+
+            questionBox.className =
+                "question-box";
+
+
+            const title =
+                document.createElement(
+                    "h3"
+                );
+
+
+            title.textContent =
+                `${questionIndex + 1}. ${item.question}`;
+
+
+            questionBox.appendChild(
+                title
+            );
+
+
+            item.options.forEach(
+                function(option, optionIndex) {
+
+                    const label =
+                        document.createElement(
+                            "label"
+                        );
+
+
+                    label.className =
+                        "option";
+
+
+                    const radio =
+                        document.createElement(
+                            "input"
+                        );
+
+
+                    radio.type = "radio";
+
+                    radio.name =
+                        `question-${questionIndex}`;
+
+                    radio.value =
+                        option;
+
+
+                    label.appendChild(
+                        radio
+                    );
+
+
+                    const optionText =
+                        document.createElement(
+                            "span"
+                        );
+
+
+                    optionText.textContent =
+                        option;
+
+
+                    label.appendChild(
+                        optionText
+                    );
+
+
+                    questionBox.appendChild(
+                        label
+                    );
+
+                }
+            );
+
+
+            const checkButton =
+                document.createElement(
+                    "button"
+                );
+
+
+            checkButton.type =
+                "button";
+
+
+            checkButton.className =
+                "check-button";
+
+
+            checkButton.textContent =
+                "Check Answer";
+
+
+            const feedback =
+                document.createElement(
+                    "div"
+                );
+
+
+            feedback.className =
+                "feedback";
+
+
+            checkButton.addEventListener(
+                "click",
+                function() {
+
+                    const selected =
+                        document.querySelector(
+                            `input[name="question-${questionIndex}"]:checked`
+                        );
+
+
+                    if (!selected) {
+
+                        feedback.textContent =
+                            "Please select an answer.";
+
+                        feedback.className =
+                            "feedback wrong";
+
+                        return;
+
+                    }
+
+
+                    if (
+                        selected.value ===
+                        item.answer
+                    ) {
+
+                        feedback.textContent =
+                            "✓ Correct!";
+
+                        feedback.className =
+                            "feedback correct";
+
+                    } else {
+
+                        feedback.textContent =
+                            `✗ Incorrect. Correct answer: ${item.answer}`;
+
+                        feedback.className =
+                            "feedback wrong";
+
+                    }
+
+                }
+            );
+
+
+            questionBox.appendChild(
+                checkButton
+            );
+
+
+            questionBox.appendChild(
+                feedback
+            );
+
+
+            container.appendChild(
+                questionBox
+            );
+
+        }
+    );
+
+
+    show(container);
+
+}
+
+
+/* =====================================
+   Learning Path
+===================================== */
+
+document
+    .getElementById("learningForm")
+    .addEventListener(
+        "submit",
+        async function(event) {
+
+            event.preventDefault();
+
+
+            const topic =
+                document
+                    .getElementById("learningTopic")
+                    .value
+                    .trim();
+
+
+            const loading =
+                document
+                    .getElementById("learningLoading");
+
+
+            const result =
+                document
+                    .getElementById("learningResult");
+
+
+            if (!topic) {
+
+                showError(
+                    result,
+                    "Please enter a topic."
+                );
+
+                return;
+
+            }
+
+
+            show(loading);
+            hide(result);
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        `/learn/recommendations?topic=${encodeURIComponent(topic)}`
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        data.detail ||
+                        "Unable to create learning path."
+                    );
+
+                }
+
+
+                showTextResult(
+                    result,
+                    data.recommendation
+                );
+
+
+            } catch(error) {
+
+                showError(
+                    result,
+                    error.message
+                );
+
+            } finally {
+
+                hide(loading);
+
+            }
+
+        }
+    );
+
+</script>
+
+</body>
+
+</html>
